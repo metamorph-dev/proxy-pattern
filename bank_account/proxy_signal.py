@@ -1,14 +1,17 @@
 from typing import Callable
 
-from .bank_account import BankAccountABC
+from .bank_account_protocol import BankAccountProtocol
+
+
+Signal = Callable[[BankAccountProtocol, int], None] | None
 
 
 class ProxySignalContextManager:
     def __init__(self,
-                 bank_account: BankAccountABC,
+                 bank_account: BankAccountProtocol,
                  value: int,
-                 pre_signal: Callable[[BankAccountABC, int], None] | None = None,
-                 post_signal: Callable[[BankAccountABC, int], None] | None = None):
+                 pre_signal: Signal = None,
+                 post_signal: Signal = None):
         self._bank_account = bank_account
         self._value = value
         self._pre_signal = pre_signal
@@ -24,13 +27,13 @@ class ProxySignalContextManager:
             self._post_signal(self._bank_account, self._value)
 
 
-class ProxySignal(BankAccountABC):
+class ProxySignal:
     def __init__(self,
-                 bank_account: BankAccountABC,
-                 pre_add: Callable[[BankAccountABC, int], None] | None = None,
-                 post_add: Callable[[BankAccountABC, int], None] | None = None,
-                 pre_sub: Callable[[BankAccountABC, int], None] | None = None,
-                 post_sub: Callable[[BankAccountABC, int], None] | None = None,
+                 bank_account: BankAccountProtocol,
+                 pre_add: Signal = None,
+                 post_add: Signal = None,
+                 pre_sub: Signal = None,
+                 post_sub: Signal = None,
                  ):
         self._bank_account = bank_account
         self._pre_add = pre_add
@@ -41,6 +44,10 @@ class ProxySignal(BankAccountABC):
     @property
     def amount(self) -> int:
         return self._bank_account.amount
+
+    @amount.setter
+    def amount(self, value: int) -> None:
+        self._bank_account.amount = value
 
     def add(self, value: int) -> None:
         with ProxySignalContextManager(self._bank_account, value, self._pre_add, self._post_add):

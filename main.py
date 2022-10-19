@@ -1,9 +1,9 @@
 from bank_account.bank_account import BankAccount
-from bank_account.bank_account import BankAccountABC
+from bank_account.bank_account_protocol import BankAccountProtocol
 from bank_account.proxy_signal import ProxySignal
 
 
-def cash_out(bank_account: BankAccountABC) -> None:
+def cash_out(bank_account: BankAccountProtocol) -> None:
     bank_account.sub(bank_account.amount)
 
 
@@ -26,4 +26,5 @@ def main() -> None:
     cash_out(account2)
 
 
-main()
+if __name__ == '__main__':
+    main()
